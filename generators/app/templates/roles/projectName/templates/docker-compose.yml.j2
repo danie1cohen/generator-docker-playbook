@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+  web:
+    image: {{ docker_repo }}
+    env_file: .env
+    restart: always
+    ports:
+    - 9000:9000
+    volumes:
+    - {{ data_dir }}:/data
+    - {{ log_dir }}:/log
+    - {{ static_dir }}:/static
+    - {{ ssl_dir }}:/ssl

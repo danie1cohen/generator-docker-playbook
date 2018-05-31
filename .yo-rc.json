@@ -1,0 +1,9 @@
+{
+  "generator-node": {
+    "promptValues": {
+      "authorName": "Dan Cohen",
+      "authorEmail": "daniel.o.cohen@gmail.com",
+      "authorUrl": ""
+    }
+  }
+}

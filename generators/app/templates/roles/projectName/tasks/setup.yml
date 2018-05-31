@@ -1,0 +1,41 @@
+--- # setup.yml
+
+
+- name: get local user id
+  command: id -u {{ <%= projectName %>_user }}
+  register: local_user_id_cmd
+  changed_when: false
+
+- name: store id as fact
+  set_fact:
+    local_user_id: "{{ local_user_id_cmd.stdout }}"
+
+- name: create installation folder
+  file: path={{ install_path }} state=directory mode=0700
+        owner={{ <%= projectName %>_user }} group={{ <%= projectName %>_group }}
+  become: yes
+
+- name: create log folder
+  file: path={{ log_dir }} state=directory mode=0770
+        owner={{ <%= projectName %>_user }} group={{ <%= projectName %>_group }}
+  become: yes
+
+- name: create data folder
+  file: path={{ data_dir }} state=directory mode=0700
+        owner={{ <%= projectName %>_user }} group={{ <%= projectName %>_group }}
+  become: yes
+
+- name: create ssl folder
+  file: path={{ ssl_dir }} state=directory mode=0700
+        owner={{ <%= projectName %>_user }} group={{ <%= projectName %>_group }}
+  become: yes
+
+- name: create static folder
+  file: path={{ static_dir }} state=directory mode=0755
+        owner={{ <%= projectName %>_user }} group={{ <%= projectName %>_group }}
+  become: yes
+
+- name: create .env file
+  template: src=templates/env.j2 dest={{ install_path }}/.env mode=0700
+            owner={{ <%= projectName %>_user }} group={{ <%= projectName %>_group }}
+  become: yes

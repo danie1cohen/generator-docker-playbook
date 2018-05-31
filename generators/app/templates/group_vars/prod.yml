@@ -1,0 +1,4 @@
+ansible_user: ansible
+ansible_connection: smart
+
+django_debug: 0

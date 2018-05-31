@@ -1,0 +1,50 @@
+--- # docker.yml
+
+
+- name: install docker-compose
+  template: src=templates/docker-compose.yml.j2 dest={{ install_path }}/docker-compose.yml
+  become: true
+  notify:
+  - restart docker services
+
+- name: install python-pip if needed
+  apt: name=python-pip state=present
+  become: true
+  when: no
+
+- name: update pip to latest
+  pip: name={{ item }} state=latest
+  become: yes
+  with_items:
+  - setuptools
+  - pip
+  - requests
+
+- name: install docker python bindings
+  pip: name={{ item }} state=present
+  become: true
+  with_items:
+    - docker-py==1.10.6
+    - docker-compose==1.9.0
+
+- name: login to registry
+  docker_login: registry={{ docker_registry }} state=present
+                username={{ docker_username }} password={{ docker_password }}
+  become: true
+  changed_when: false
+  notify:
+  - restart docker services
+
+- name: pull latest repo
+  docker_container: name=cudl_rest pull=yes image={{ docker_repo }} state=present
+  become: true
+  notify:
+  - restart docker services
+  - migrate
+  - collectstatic
+
+- name: logout of registry
+  docker_login: registry={{ docker_registry }} state=absent
+  become: true
+  notify:
+  - restart docker services

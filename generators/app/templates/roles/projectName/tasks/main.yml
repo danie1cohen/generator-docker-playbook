@@ -1,0 +1,6 @@
+---
+# tasks file for cudl_rest
+
+- include: setup.yml
+
+- include: docker.yml

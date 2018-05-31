@@ -1,0 +1,5 @@
+
+- hosts: dev
+  roles:
+  - danie1cohen.nginx
+  - <%= projectName %>

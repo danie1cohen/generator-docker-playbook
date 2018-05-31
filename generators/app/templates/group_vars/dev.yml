@@ -1,0 +1,4 @@
+ansible_user: vagrant
+ansible_connection: local
+
+django_debug: 1

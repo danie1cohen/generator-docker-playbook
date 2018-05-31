@@ -1,0 +1,86 @@
+
+<%= projectName %>_user: "{{ ansible_user }}"
+<%= projectName %>_group: "{{ <%= projectName %>_user }}"
+
+org_domain: yourdomain.com
+
+install_path: /opt/<%= projectName %>
+data_dir: /opt/<%= projectName %>/data
+log_dir: /opt/<%= projectName %>/log
+ssl_dir: /opt/<%= projectName %>/ssl
+static_dir: /opt/<%= projectName %>/static
+
+docker_registry: registry.usccreditunion.org
+docker_username: "{{ vault_docker_username }}"
+docker_password: "{{ vault_docker_password }}"
+docker_repo: "{{ docker_registry }}/<%= projectName %>"
+
+
+# ###############
+# django stuffs #
+#################
+database_url: sqlite:////data/db.sqlite3
+
+django_secret_key: "{{ vault_django_secret_key }}"
+django_debug: 0
+django_allowed_hosts:
+- localhost
+- <%= projectName %>
+- <%= projectName %>.{{ org_domain }}
+
+sentry_dsn: "{{ vault_sentry_dsn }}"
+
+ldap_server_uri: ldaps://ad.{{ org_domain }}:636
+ldap_bind_user: "{{ vault_ldap_bind_user }}"@{{ org_domain }}
+ldap_bind_pwd: "{{ vault_ldap_bind_pwd }}"
+ldap_opt_x_tls_require_cert: 0
+ldap_opt_x_tls: 1
+ldap_opt_x_tls_demand: 1
+ldap_opt_x_tls_cacertdir: /ssl/
+ldap_require_group: cn=SOMEGROUP,ou=groups,dc=domain,dc=com
+ldap_deny_group: null
+ldap_user_flag_group_active: {{ ldap_require_group }}
+ldap_user_flag_group_staff: {{ ldap_require_group }}
+ldap_user_flag_group_superuser: {{ ldap_require_group }}
+
+env_vars:
+  DATABASE_URL: "{{ database_url }}"
+  DJANGO_SECRET_KEY: "{{ django_secret_key }}"
+  DJANGO_DEBUG: "{{ django_debug }}"
+  DJANGO_ALLOWED_HOSTS: "{{ django_allowed_hosts|join(',') }}"
+  SENTRY_DSN: "{{ sentry_dsn }}"
+  LDAP_SERVER_URI: "{{ ldap_server_uri }}"
+  LDAP_BIND_USER: "{{ ldap_bind_user }}"
+  LDAP_BIND_PWD: "{{ ldap_bind_pwd }}"
+  LDAP_OPT_X_TLS_REQUIRE_CERT: "{{ ldap_opt_x_tls_require_cert }}"
+  LDAP_OPT_X_TLS: "{{ ldap_opt_x_tls }}"
+  LDAP_OPT_X_TLS_DEMAND: "{{ ldap_opt_x_tls_demand }}"
+  LDAP_OPT_X_TLS_CACERTDIR: "{{ ldap_opt_x_tls_cacertdir }}"
+  LDAP_REQUIRE_GROUP: "{{ ldap_require_group }}"
+  #LDAP_DENY_GROUP: "{{ ldap_deny_group }}"
+  LDAP_USER_FLAG_GROUP_ACTIVE: "{{ ldap_user_flag_group_active }}"
+  LDAP_USER_FLAG_GROUP_STAFF: "{{ ldap_user_flag_group_staff }}"
+  LDAP_USER_FLAG_GROUP_SUPERUSER: "{{ ldap_user_flag_group_superuser }}"
+
+#########
+# nginx #
+#########
+
+nginx_domain_name: <%= projectName %>
+nginx_fqdn: <%= projectName %>.{{ org_domain }}
+
+nginx_ssl: true
+nginx_force_https: true
+nginx_ssl_cert: "{{ playbook_dir }}/roles/<%= projectName %>/files/<%= projectName %>_chain.crt"
+nginx_ssl_key: "{{ playbook_dir }}/roles/<%= projectName %>/files/<%= projectName %>.key"
+
+nginx_ports:
+  - 80
+  - "[::]:80"
+  - 443 default ssl
+  - "[::]:443"
+
+nginx_upstream_pass: proxy_pass
+nginx_upstream_prefix: http://
+nginx_socket: localhost:9000
+nginx_static_path: "{{ static_dir }}"

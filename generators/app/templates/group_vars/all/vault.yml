@@ -1,0 +1,9 @@
+
+
+vault_docker_username: null
+vault_docker_password: null
+
+vault_django_secret_key: '<%= secretKey %>'
+
+vault_ldap_bind_user: null
+vault_ldap_bind_pwd: null

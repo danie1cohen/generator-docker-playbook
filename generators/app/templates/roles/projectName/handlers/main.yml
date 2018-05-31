@@ -1,0 +1,32 @@
+---
+# handlers file for cudl_rest
+
+- name: restart docker services
+  command: echo "Restarting {{ docker_services }}"
+  notify:
+  - stop docker services
+  - start docker services
+
+- name: stop docker services
+  docker_service:
+    project_src: "{{ install_path }}"
+    state: absent
+  become: true
+
+- name: start docker services
+  docker_service:
+    project_src: "{{ install_path }}"
+    state: present
+  become: true
+
+- name: migrate
+  command: docker-compose run --rm web python manage.py migrate
+  args:
+    chdir: "{{ install_path }}"
+  become: yes
+
+- name: collectstatic
+  command: docker-compose run --rm web python manage.py collectstatic --noinput
+  args:
+    chdir: "{{ install_path }}"
+  become: yes
