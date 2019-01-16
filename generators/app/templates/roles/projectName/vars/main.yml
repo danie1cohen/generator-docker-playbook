@@ -1,2 +1,2 @@
 ---
-# vars file for cudl_rest
+# vars file for <%= projectName %>

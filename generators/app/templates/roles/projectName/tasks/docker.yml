@@ -36,7 +36,7 @@
   - restart docker services
 
 - name: pull latest repo
-  docker_container: name=cudl_rest pull=yes image={{ docker_repo }} state=present
+  docker_container: name=<%= projectName %> pull=yes image={{ docker_repo }} state=present
   become: true
   notify:
   - restart docker services

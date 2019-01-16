@@ -1,5 +1,5 @@
 ---
-# handlers file for cudl_rest
+# handlers file for <%= projectName %>
 
 - name: restart docker services
   command: echo "Restarting {{ docker_services }}"

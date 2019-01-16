@@ -1,5 +1,5 @@
 ---
-# tasks file for cudl_rest
+# tasks file for <%= projectName %>
 
 - include: setup.yml
 
