@@ -1,5 +1,4 @@
 
 - hosts: prod
   roles:
-  - danie1cohen.nginx
   - <%= projectName %>
