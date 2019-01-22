@@ -1,0 +1,76 @@
+
+- name: turn off firewalld
+  service: name=firewalld state=stopped enabled=False
+
+- name: install iptables services
+  yum: name=iptables-services state=present
+
+- name: ensure iptables is enabled
+  command: systemctl enable iptables
+  notify:
+  - start iptables
+  - restart iptables
+
+- name: allow related and established connections
+  iptables:
+    chain: INPUT
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+  notify:
+  - restart iptables
+  - save iptables
+
+- name: allow loopback inputs
+  iptables:
+    chain: INPUT
+    in_interface: lo
+    jump: ACCEPT
+  notify:
+  - restart iptables
+  - save iptables
+
+- name: allow loopback outputs
+  iptables:
+    chain: OUTPUT
+    out_interface: lo
+    jump: ACCEPT
+  notify:
+  - restart iptables
+  - save iptables
+
+- name: accept traffic to production ports from internal network
+  iptables:
+    chain: INPUT
+    source: "{{ item[0] }}"
+    destination_port: "{{ item[1] }}"
+    protocol: tcp
+    jump: ACCEPT
+  with_nested:
+  - "{{ firewall_whitelist }}"
+  - "{{ production_ports }}"
+  notify:
+  - restart iptables
+  - save iptables
+
+- name: accept traffic to internal ports from internal sources
+  iptables:
+    chain: INPUT
+    source: "{{ item[0] }}"
+    destination_port: "{{ item[1] }}"
+    protocol: tcp
+    jump: ACCEPT
+  with_nested:
+  - "{{ internal_whitelist }}"
+  - "{{ internal_ports }}"
+  notify:
+  - restart iptables
+  - save iptables
+
+- name: set input policy to drop
+  iptables:
+    chain: INPUT
+    policy: DROP
+  changed_when: false
+  notify:
+  - restart iptables
+  - save iptables

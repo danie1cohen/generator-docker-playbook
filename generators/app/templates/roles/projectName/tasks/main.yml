@@ -4,3 +4,6 @@
 - include: setup.yml
 
 - include: docker.yml
+
+- include: firewall.yml
+  become: true

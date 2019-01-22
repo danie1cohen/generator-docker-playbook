@@ -2,6 +2,15 @@
 <%= projectName %>_user: "{{ ansible_user }}"
 <%= projectName %>_group: "{{ <%= projectName %>_user }}"
 
+firewall_whitelist:
+- 127.0.0.1
+
+internal_whitelist:
+- 127.0.0.1
+
+production_ports: []
+internal_ports: []
+
 org_domain: yourdomain.com
 
 install_path: /opt/<%= projectName %>

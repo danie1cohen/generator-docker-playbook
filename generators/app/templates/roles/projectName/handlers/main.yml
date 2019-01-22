@@ -1,6 +1,22 @@
 ---
 # handlers file for <%= projectName %>
 
+- name: save iptables
+  command: service iptables save
+  become: true
+
+- name: enable iptables
+  command: systemctl enable iptables
+  become: true
+
+- name: restart iptables
+  service: name=iptables state=restarted
+  become: true
+
+- name: start iptables
+  service: name=iptables state=started
+  become: true
+
 - name: restart docker services
   command: echo "Restarting {{ docker_services }}"
   notify:
