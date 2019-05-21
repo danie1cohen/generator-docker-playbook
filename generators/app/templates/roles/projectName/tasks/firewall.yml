@@ -1,3 +1,4 @@
+--- # tasks/firewall.yml
 
 - name: turn off firewalld
   service: name=firewalld state=stopped enabled=False
@@ -11,13 +12,70 @@
   - start iptables
   - restart iptables
 
-- name: allow related and established connections
+- name: pass bridged ipv4 traffic to iptables
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+  become: true
+
+- name: pass bridged ipv6 traffic to iptables
+  sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+  become: true
+
+- name: create docker service systemd folder
+  file: path=/etc/systemd/system/docker.service.d state=directory
+
+- name: disable docker mangling iptables
+  copy:
+    dest: /etc/systemd/system/docker.service.d/disable-iptables.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/dockerd --iptables=false
+  register: disable_iptables
+  notify:
+  - daemon reload
+  - restart docker daemon
+
+- name: forward docker traffic to ethernet
   iptables:
-    chain: INPUT
-    ctstate: ESTABLISHED,RELATED
+    chain: FORWARD
+    in_interface: docker0
+    out_interface: ens33
     jump: ACCEPT
   notify:
-  - restart iptables
+  - save iptables
+
+- name: forward ethernet traffic to docker
+  iptables:
+    chain: FORWARD
+    in_interface: ens33
+    out_interface: docker0
+    jump: ACCEPT
+  notify:
+  - save iptables
+
+- name: flush handlers
+  meta: flush_handlers
+  when: disable_iptables.changed
+
+- name: accept inputs from related and established connections
+  iptables:
+    chain: "{{ item }}"
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+  with_items:
+  - INPUT
+  - FORWARD
+  notify:
   - save iptables
 
 - name: allow loopback inputs
@@ -36,6 +94,14 @@
     jump: ACCEPT
   notify:
   - restart iptables
+  - save iptables
+
+- name: allow icmp
+  iptables:
+    chain: OUTPUT
+    protocol: icmp
+    jump: ACCEPT
+  notify:
   - save iptables
 
 - name: accept traffic to production ports from internal network
@@ -72,5 +138,20 @@
     policy: DROP
   changed_when: false
   notify:
-  - restart iptables
+  - save iptables
+
+- name: set forward policy to drop
+  iptables:
+    chain: FORWARD
+    policy: DROP
+  changed_when: false
+  notify:
+  - save iptables
+
+- name: set output policy to accept
+  iptables:
+    chain: OUTPUT
+    policy: ACCEPT
+  changed_when: false
+  notify:
   - save iptables

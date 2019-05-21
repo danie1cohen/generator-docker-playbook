@@ -17,6 +17,20 @@
   service: name=iptables state=started
   become: true
 
+- name: reload sysctl
+  command: sysctl --system
+  become: true
+
+- name: daemon reload
+  command: systemctl daemon-reload
+  args:
+    warn: no
+  become: true
+
+- name: restart docker daemon
+  service: name=docker state=restarted
+  become: true
+
 - name: restart docker services
   command: echo "Restarting {{ docker_services }}"
   notify:

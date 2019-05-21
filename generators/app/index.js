@@ -47,6 +47,7 @@ module.exports = class extends Generator {
       'roles/projectName/handlers/main.yml',
       'roles/projectName/meta/main.yml',
       'roles/projectName/tasks/docker.yml',
+      'roles/projectName/tasks/firewall.yml',
       'roles/projectName/tasks/main.yml',
       'roles/projectName/tasks/setup.yml',
       'roles/projectName/templates/docker-compose.yml.j2',
