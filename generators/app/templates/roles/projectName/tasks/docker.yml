@@ -7,10 +7,15 @@
   notify:
   - restart docker services
 
-- name: install python-pip if needed
+- name: install python-pip (apt)
   apt: name=python-pip state=present
   become: true
-  when: no
+  when: ansible_distribution in ('Debian', 'Ubuntu')
+
+- name: install python-pip (yum)
+  yum: name=python-pip state=present
+  become: true
+  when: ansible_distribution in ('CentOS', 'Red HatEnteerprise Linux')
 
 - name: update pip to latest
   pip: name={{ item }} state=latest

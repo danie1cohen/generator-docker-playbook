@@ -32,7 +32,7 @@
   become: true
 
 - name: restart docker services
-  command: echo "Restarting {{ docker_services }}"
+  command: echo "Restarting docker services"
   notify:
   - stop docker services
   - start docker services

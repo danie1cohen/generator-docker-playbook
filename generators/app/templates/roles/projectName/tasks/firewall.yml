@@ -12,6 +12,10 @@
   - start iptables
   - restart iptables
 
+- name: set modprob netfilter
+  modprobe: name=br_netfilter state=present
+  become: true
+
 - name: pass bridged ipv4 traffic to iptables
   sysctl:
     name: net.bridge.bridge-nf-call-iptables
