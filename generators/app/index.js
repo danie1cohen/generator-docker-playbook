@@ -2,12 +2,13 @@
 const Generator = require('yeoman-generator');
 const chalk = require('chalk');
 const yosay = require('yosay');
+const mkdirp = require('mkdirp');
 
 module.exports = class extends Generator {
   prompting() {
     // Have Yeoman greet the user.
     this.log(
-      yosay(`Welcome to the cool ${chalk.red('generator-docker-playbook')} generator!`)
+      yosay(`Welcome to the cool-dude ${chalk.red('docker-playbook')} generator!`)
     );
 
     const prompts = [
@@ -16,7 +17,7 @@ module.exports = class extends Generator {
         name: 'projectName',
         message: 'What is the name of your project?',
         default: this.appname
-      }
+      },
     ];
 
     return this.prompt(prompts).then(props => {
@@ -43,7 +44,7 @@ module.exports = class extends Generator {
       'group_vars/dev.yml',
       'group_vars/prod.yml',
       'roles/projectName/defaults/main.yml',
-      //'roles/projectName/files/',
+      'roles/projectName/files/',
       'roles/projectName/handlers/main.yml',
       'roles/projectName/meta/main.yml',
       'roles/projectName/tasks/docker.yml',
@@ -70,15 +71,19 @@ module.exports = class extends Generator {
 
       if (destPath.includes('projectName') === true) {
         destPath = destPath.replace(
-            'projectName', this.props.projectName
+            /projectName/g, this.props.projectName
         );
       }
 
-      this.fs.copyTpl(
-        this.templatePath(templatePath),
-        this.destinationPath(destPath),
-        this.props
-      );
+      if ( destPath.endsWith('/') ) {
+        mkdirp.sync(destPath);
+      } else {
+        this.fs.copyTpl(
+          this.templatePath(templatePath),
+          this.destinationPath(destPath),
+          this.props
+        );
+      }
     }
   }
 
