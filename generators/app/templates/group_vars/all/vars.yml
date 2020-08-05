@@ -2,13 +2,29 @@
 <%= projectName %>_user: "{{ ansible_user }}"
 <%= projectName %>_group: "{{ <%= projectName %>_user }}"
 
+service_name: <%= projectName %>
+
+docker_subnet: 172.21.0.0/16
+
 firewall_whitelist:
 - 127.0.0.1
 
 internal_whitelist:
 - 127.0.0.1
+- "{{ docker_subnet }}"
 
-production_ports: []
+nginx_upstream_port: 9000
+nginx_midstream_port: 9080
+
+production_ports:
+- 22
+- 80
+- 443
+
+forwarded_ports:
+- "{{ nginx_upstream_port }}"
+- "{{ nginx_midstream_port }}"
+
 internal_ports: []
 
 org_domain: yourdomain.com
@@ -23,6 +39,12 @@ docker_registry: registry.usccreditunion.org
 docker_username: "{{ vault_docker_username }}"
 docker_password: "{{ vault_docker_password }}"
 docker_repo: "{{ docker_registry }}/<%= projectName %>"
+
+ssl_cert: "<%= projectName %>_chain.crt"
+ssl_key: "<%= projectName %>.key"
+ssl_items:
+- "{{ ssl_cert }}"
+- "{{ ssl_key }}"
 
 
 # ###############
@@ -57,7 +79,6 @@ env_vars:
   DJANGO_SECRET_KEY: "{{ django_secret_key }}"
   DJANGO_DEBUG: "{{ django_debug }}"
   DJANGO_ALLOWED_HOSTS: "{{ django_allowed_hosts|join(',') }}"
-  SENTRY_DSN: "{{ sentry_dsn }}"
   LDAP_SERVER_URI: "{{ ldap_server_uri }}"
   LDAP_BIND_USER: "{{ ldap_bind_user }}"
   LDAP_BIND_PWD: "{{ ldap_bind_pwd }}"
@@ -70,6 +91,7 @@ env_vars:
   LDAP_USER_FLAG_GROUP_ACTIVE: "{{ ldap_user_flag_group_active }}"
   LDAP_USER_FLAG_GROUP_STAFF: "{{ ldap_user_flag_group_staff }}"
   LDAP_USER_FLAG_GROUP_SUPERUSER: "{{ ldap_user_flag_group_superuser }}"
+  SENTRY_DSN: "{{ sentry_dsn }}"
 
 #########
 # nginx #
@@ -78,10 +100,8 @@ env_vars:
 nginx_domain_name: <%= projectName %>
 nginx_fqdn: <%= projectName %>.{{ org_domain }}
 
-nginx_ssl: true
-nginx_force_https: true
-nginx_ssl_cert: "{{ playbook_dir }}/roles/<%= projectName %>/files/<%= projectName %>_chain.crt"
-nginx_ssl_key: "{{ playbook_dir }}/roles/<%= projectName %>/files/<%= projectName %>.key"
+nginx_ssl_cert: /ssl/{{ ssl_cert }}
+nginx_sls_key: /ssl/{{ ssl_key }}
 
 nginx_ports:
   - 80

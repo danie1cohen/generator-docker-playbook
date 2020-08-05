@@ -1,0 +1,28 @@
+
+- name: save iptables
+  command: service iptables save
+  args:
+    warn: no
+  become: true
+
+- name: enable iptables
+  command: systemctl enable iptables
+  become: true
+
+- name: restart iptables
+  service: name=iptables state=restarted
+  become: true
+
+- name: start iptables
+  service: name=iptables state=started
+  become: true
+
+- name: reload sysctl
+  command: sysctl --system
+  become: true
+
+- name: daemon reload
+  command: systemctl daemon-reload
+  args:
+    warn: no
+  become: true

@@ -1,9 +1,11 @@
----
-# tasks file for <%= projectName %>
+--- # tasks/main.yml file for <%= projectName %>
 
 - include: setup.yml
 
-- include: firewall.yml
-  become: true
+- include: nginx.yml
 
 - include: docker.yml
+
+- include: firewall.yml
+  become: true
+  when: "'prod' in group_names or 'test' in group_names"

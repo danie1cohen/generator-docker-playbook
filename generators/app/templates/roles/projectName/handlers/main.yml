@@ -1,20 +1,14 @@
 ---
-# handlers file for <%= projectName %>
+# handlers file for the <%= projectName %> role
 
-- name: save iptables
-  command: service iptables save
-  become: true
+- include: firewall.yml
 
-- name: enable iptables
-  command: systemctl enable iptables
-  become: true
+- include: docker.yml
 
-- name: restart iptables
-  service: name=iptables state=restarted
-  become: true
-
-- name: start iptables
-  service: name=iptables state=started
+- name: chown data files
+  file: path={{ data_dir }} state=directory recurse=yes mode=0700
+        owner={{ <%= projectName %>_user }} group={{ <%= projectName %>_group }}
+  listen: restart docker services
   become: true
 
 - name: reload sysctl
@@ -26,37 +20,3 @@
   args:
     warn: no
   become: true
-
-- name: restart docker daemon
-  service: name=docker state=restarted
-  become: true
-
-- name: restart docker services
-  command: echo "Restarting docker services"
-  notify:
-  - stop docker services
-  - start docker services
-
-- name: stop docker services
-  docker_service:
-    project_src: "{{ install_path }}"
-    state: absent
-  become: true
-
-- name: start docker services
-  docker_service:
-    project_src: "{{ install_path }}"
-    state: present
-  become: true
-
-- name: migrate
-  command: docker-compose run --rm web python manage.py migrate
-  args:
-    chdir: "{{ install_path }}"
-  become: yes
-
-- name: collectstatic
-  command: docker-compose run --rm web python manage.py collectstatic --noinput
-  args:
-    chdir: "{{ install_path }}"
-  become: yes

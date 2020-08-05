@@ -1,0 +1,16 @@
+--- # tasks/nginx.yml
+
+- name: install ssl items
+  copy: src=files/{{ item }} dest={{ ssl_dir }}/{{ item }}
+        mode=0400 owner=root
+  become: true
+  with_items: "{{ ssl_items }}"
+
+- name: set nginx configs
+  template: src=templates/{{ item }}.conf.j2
+            dest={{ install_path }}/{{ item }}.conf
+            mode=0600 owner=root group=root
+  become: true
+  with_items:
+  - ssl
+  - lb
