@@ -34,6 +34,10 @@
     - docker-py==1.10.6
     - docker-compose==1.9.0
 
+- name: ensure docker daemon is running
+  systemd: name=docker state=started
+  become: true
+
 - name: login to registry
   docker_login: registry={{ docker_registry }} state=present
                 username={{ docker_username }} password={{ docker_password }}
