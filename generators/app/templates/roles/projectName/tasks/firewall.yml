@@ -34,21 +34,6 @@
     reload: yes
   become: true
 
-- name: create docker service systemd folder
-  file: path=/etc/systemd/system/docker.service.d state=directory
-
-- name: disable docker mangling iptables
-  copy:
-    dest: /etc/systemd/system/docker.service.d/disable-iptables.conf
-    content: |
-      [Service]
-      ExecStart=
-      ExecStart=/usr/bin/dockerd --iptables=false
-  register: disable_iptables
-  notify:
-  - daemon reload
-  - restart docker daemon
-
 - name: forward docker traffic to ethernet
   iptables:
     chain: FORWARD
@@ -66,10 +51,6 @@
     jump: ACCEPT
   notify:
   - save iptables
-
-- name: flush handlers
-  meta: flush_handlers
-  when: disable_iptables.changed
 
 - name: accept inputs from related and established connections
   iptables:
