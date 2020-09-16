@@ -1,7 +1,7 @@
 --- # tasks/firewall.yml
 
 - name: turn off firewalld
-  service: name=firewalld state=stopped enabled=False
+  service: name=firewalld state=stopped enabled=no
 
 - name: install iptables services
   yum: name=iptables-services state=present
@@ -14,7 +14,6 @@
 
 - name: set modprob netfilter
   modprobe: name=br_netfilter state=present
-  become: true
 
 - name: pass bridged ipv4 traffic to iptables
   sysctl:
@@ -23,7 +22,6 @@
     sysctl_set: yes
     state: present
     reload: yes
-  become: true
 
 - name: pass bridged ipv6 traffic to iptables
   sysctl:
@@ -32,42 +30,30 @@
     sysctl_set: yes
     state: present
     reload: yes
-  become: true
 
-- name: forward docker traffic to ethernet
-  iptables:
-    chain: FORWARD
-    in_interface: docker0
-    out_interface: ens33
-    jump: ACCEPT
-  notify:
-  - save iptables
+- name: restart docker service
+  systemd: name=docker state=restarted enabled=yes
 
-- name: forward ethernet traffic to docker
-  iptables:
-    chain: FORWARD
-    in_interface: ens33
-    out_interface: docker0
-    jump: ACCEPT
-  notify:
-  - save iptables
-
-- name: accept inputs from related and established connections
+- name: allow related and established connections
   iptables:
     chain: "{{ item }}"
     ctstate: ESTABLISHED,RELATED
     jump: ACCEPT
+    comment: allow related and established connections
   with_items:
   - INPUT
   - FORWARD
+  - DOCKER-USER
   notify:
+  - restart iptables
   - save iptables
 
-- name: allow loopback inputs
+- name: allow loopback in
   iptables:
     chain: INPUT
     in_interface: lo
     jump: ACCEPT
+    comment: allow loopback in
   notify:
   - restart iptables
   - save iptables
@@ -77,42 +63,98 @@
     chain: OUTPUT
     out_interface: lo
     jump: ACCEPT
+    comment: allow loopback out
   notify:
   - restart iptables
   - save iptables
 
-- name: allow icmp
+- name: make pingable
   iptables:
-    chain: OUTPUT
+    chain: "{{ item }}"
     protocol: icmp
     jump: ACCEPT
+    comment: make pingable
+  with_items:
+  - INPUT
+  - OUTPUT
   notify:
+  - restart iptables
   - save iptables
 
-- name: accept traffic to production ports from internal network
+- name: allow input to production ports host from approved sources
   iptables:
     chain: INPUT
     source: "{{ item[0] }}"
     destination_port: "{{ item[1] }}"
     protocol: tcp
     jump: ACCEPT
+    comment: allow traffic from approved sources
   with_nested:
   - "{{ firewall_whitelist }}"
   - "{{ production_ports }}"
-  notify:
-  - restart iptables
-  - save iptables
 
-- name: accept traffic to internal ports from internal sources
+- name: forward traffic on production ports host from approved sources
   iptables:
-    chain: INPUT
+    chain: FORWARD
     source: "{{ item[0] }}"
     destination_port: "{{ item[1] }}"
     protocol: tcp
     jump: ACCEPT
+    comment: allow traffic from approved sources
   with_nested:
+  - "{{ firewall_whitelist }}"
+  - "{{ production_ports }}"
+
+- name: accept traffic to docker-user chain from internal whitelist
+  iptables:
+    chain: DOCKER-USER
+    source: "{{ item }}"
+    jump: ACCEPT
+    comment: accept traffic to docker-user chain from internal whitelist
+  with_items:
   - "{{ internal_whitelist }}"
-  - "{{ internal_ports }}"
+  notify:
+  - restart iptables
+  - save iptables
+
+- name: delete the drop rule, in case it's not 2nd to last
+  iptables:
+    chain: DOCKER-USER
+    protocol: all
+    jump: DROP
+    comment: drop any other traffic
+    state: absent
+  notify:
+  - restart iptables
+  - save iptables
+
+- name: re-add teh drop rule, so it's 2nd to last
+  iptables:
+    chain: DOCKER-USER
+    protocol: all
+    jump: DROP
+    comment: drop any other traffic
+    state: present
+  notify:
+  - restart iptables
+  - save iptables
+
+- name: delete the return rule, in case it's not last in the chain
+  iptables:
+    chain: DOCKER-USER
+    protocol: all
+    jump: RETURN
+    state: absent
+  notify:
+  - restart iptables
+  - save iptables
+
+- name: re-add the return rule, so its last
+  iptables:
+    chain: DOCKER-USER
+    protocol: all
+    jump: RETURN
+    state: present
   notify:
   - restart iptables
   - save iptables
@@ -121,7 +163,6 @@
   iptables:
     chain: INPUT
     policy: DROP
-  changed_when: false
   notify:
   - save iptables
 
@@ -129,7 +170,6 @@
   iptables:
     chain: FORWARD
     policy: DROP
-  changed_when: false
   notify:
   - save iptables
 
@@ -137,6 +177,5 @@
   iptables:
     chain: OUTPUT
     policy: ACCEPT
-  changed_when: false
   notify:
   - save iptables
