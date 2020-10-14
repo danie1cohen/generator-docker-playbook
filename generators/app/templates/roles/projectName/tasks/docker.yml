@@ -12,27 +12,19 @@
             mode=0600 owner=root group=root
   become: true
 
-- name: reiinstall packages inplace, if needed
-  pip: name={{ item}} state=latest extra_args=-I
-  become: true
-  with_items:
-  - chardet
-  - urllib3
-  - requests
-
 - name: update pip to latest
-  pip: name={{ item }} state=latest
+  pip: name={{ item }} state=latest executable=pip3
   become: true
   with_items:
   - setuptools
   - pip
 
 - name: install docker python bindings
-  pip: name={{ item }} state=present
+  pip: name={{ item }} state=present executable=pip3
   become: true
   with_items:
-    - docker-py==1.10.6
-    - docker-compose==1.9.0
+  - docker-py==1.10.6
+  - docker-compose==1.9.0
 
 - name: ensure docker daemon is running
   systemd: name=docker state=started
