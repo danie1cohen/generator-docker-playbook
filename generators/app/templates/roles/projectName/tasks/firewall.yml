@@ -93,9 +93,9 @@
   - "{{ firewall_whitelist }}"
   - "{{ production_ports }}"
 
-- name: forward traffic on production ports host from approved sources
+- name: forward traffic on forwarded ports host from approved sources
   iptables:
-    chain: FORWARD
+    chain: DOCKER-USER
     source: "{{ item[0] }}"
     destination_port: "{{ item[1] }}"
     protocol: tcp
@@ -103,7 +103,7 @@
     comment: allow traffic from approved sources
   with_nested:
   - "{{ firewall_whitelist }}"
-  - "{{ production_ports }}"
+  - "{{ forwarded_ports }}"
 
 - name: accept traffic to docker-user chain from internal whitelist
   iptables:
