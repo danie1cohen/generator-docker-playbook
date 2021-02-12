@@ -39,7 +39,7 @@
   - restart docker services
 
 - name: pull latest repo
-  docker_container: name=app-dot pull=yes image={{ docker_repo }}:{{ docker_tag }}
+  docker_container: name=<%= projectName %> pull=yes image={{ docker_repo }}:{{ docker_tag }}
                     state=present
   become: true
   notify:
