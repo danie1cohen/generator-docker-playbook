@@ -17,7 +17,7 @@ module.exports = class extends Generator {
         name: 'projectName',
         message: 'What is the name of your project?',
         default: this.appname
-      },
+      }
     ];
 
     return this.prompt(prompts).then(props => {
@@ -45,6 +45,8 @@ module.exports = class extends Generator {
       'group_vars/prod.yml',
       'roles/projectName/defaults/main.yml',
       'roles/projectName/files/',
+      'roles/projectName/handlers/docker.yml',
+      'roles/projectName/handlers/firewall.yml',
       'roles/projectName/handlers/main.yml',
       'roles/projectName/meta/main.yml',
       'roles/projectName/tasks/docker.yml',
@@ -61,21 +63,18 @@ module.exports = class extends Generator {
       'dev.yml',
       'inventory',
       'prod.yml',
-      'requirements.yml',
+      'requirements.yml'
     ];
-
 
     for (var i = 0; i < files.length; i++) {
       var templatePath = files[i];
       var destPath = templatePath;
 
       if (destPath.includes('projectName') === true) {
-        destPath = destPath.replace(
-            /projectName/g, this.props.projectName
-        );
+        destPath = destPath.replace(/projectName/g, this.props.projectName);
       }
 
-      if ( destPath.endsWith('/') ) {
+      if (destPath.endsWith('/')) {
         mkdirp.sync(destPath);
       } else {
         this.fs.copyTpl(
@@ -88,6 +87,6 @@ module.exports = class extends Generator {
   }
 
   install() {
-    //this.installDependencies();
+    // This.installDependencies();
   }
 };
