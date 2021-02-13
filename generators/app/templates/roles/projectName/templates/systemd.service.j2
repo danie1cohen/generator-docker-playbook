@@ -5,7 +5,7 @@ After=docker.service
 
 [Service]
 Restart=always
-User={{ app_docker_user }}
+User={{ <%= projectName %>_user }}
 
 # Remove old containers, images and volumes
 ExecStartPre=/usr/bin/docker-compose -f {{ install_path }}/docker-compose.yml down -v
