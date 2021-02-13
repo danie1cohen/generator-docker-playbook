@@ -12,7 +12,15 @@
             mode=0600 owner=root group=root
   become: true
 
-- name: update pip to latest
+- name: install pip
+  yum: name=python-pip state=present
+  become: true
+
+- name: install pip3
+  yum: name=python3-pip state=present
+  become: true
+
+- name: update pip3 to latest
   pip: name={{ item }} state=latest executable=pip3
   become: true
   with_items:
@@ -20,7 +28,7 @@
   - pip
 
 - name: install docker python bindings
-  pip: name={{ item }} state=present executable=pip3
+  pip: name={{ item }} state=present executable=pip2
   become: true
   with_items:
   - docker-py==1.10.6
