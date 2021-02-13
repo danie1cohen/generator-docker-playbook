@@ -6,10 +6,10 @@ service_name: <%= projectName %>
 
 docker_subnet: 172.21.0.0/16
 
-firewall_whitelist:
+firewall_allowlist:
 - 127.0.0.1
 
-internal_whitelist:
+internal_allowlist:
 - 127.0.0.1
 - "{{ docker_subnet }}"
 

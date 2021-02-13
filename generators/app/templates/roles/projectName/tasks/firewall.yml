@@ -90,7 +90,7 @@
     jump: ACCEPT
     comment: allow traffic from approved sources
   with_nested:
-  - "{{ firewall_whitelist }}"
+  - "{{ firewall_allowlist }}"
   - "{{ production_ports }}"
 
 - name: forward traffic on forwarded ports host from approved sources
@@ -102,17 +102,17 @@
     jump: ACCEPT
     comment: allow traffic from approved sources
   with_nested:
-  - "{{ firewall_whitelist }}"
+  - "{{ firewall_allowlist }}"
   - "{{ forwarded_ports }}"
 
-- name: accept traffic to docker-user chain from internal whitelist
+- name: accept traffic to docker-user chain from internal allowlist
   iptables:
     chain: DOCKER-USER
     source: "{{ item }}"
     jump: ACCEPT
-    comment: accept traffic to docker-user chain from internal whitelist
+    comment: accept traffic to docker-user chain from internal allowlist
   with_items:
-  - "{{ internal_whitelist }}"
+  - "{{ internal_allowlist }}"
   notify:
   - restart iptables
   - save iptables
