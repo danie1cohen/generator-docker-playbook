@@ -6,17 +6,22 @@ service_name: <%= projectName %>
 
 docker_subnet: 172.21.0.0/16
 
-firewall_allowlist:
-- 127.0.0.1
-
-internal_allowlist:
-- 127.0.0.1
-- "{{ docker_subnet }}"
-
 nginx_upstream_port: 9000
 nginx_midstream_port: 9080
 
-production_ports:
+
+############
+# firewall #
+############
+
+local_allowlist:
+- 127.0.0.1
+- "{{ docker_subnet }}"
+
+internal_allowlist:
+- 127.0.0.1
+
+internal_ports:
 - 22
 - 80
 - 443
@@ -25,7 +30,12 @@ forwarded_ports:
 - "{{ nginx_upstream_port }}"
 - "{{ nginx_midstream_port }}"
 
-internal_ports: []
+public_ports: []
+
+#############
+# /firewall #
+#############
+
 
 org_domain: yourdomain.com
 

@@ -81,29 +81,49 @@
   - restart iptables
   - save iptables
 
-- name: allow input to production ports host from approved sources
+- name: allow public traffic inputs to public ports
+  iptables:
+    chain: INPUT
+    source: 0.0.0.0/0
+    destination_port: "{{ item }}"
+    protocol: tcp
+    jump: ACCEPT
+    comment: allow public traffic
+  with_items: "{{ public_ports }}"
+
+- name: allow public traffic forwards to public ports
+  iptables:
+    chain: FORWARD
+    source: 0.0.0.0/0
+    destination_port: "{{ item }}"
+    protocol: tcp
+    jump: ACCEPT
+    comment: allow public traffic
+  with_items: "{{ public_ports }}"
+
+- name: allow input to internal ports host from approved sources
   iptables:
     chain: INPUT
     source: "{{ item[0] }}"
     destination_port: "{{ item[1] }}"
     protocol: tcp
     jump: ACCEPT
-    comment: allow traffic from approved sources
+    comment: allow internal traffic
   with_nested:
-  - "{{ firewall_allowlist }}"
-  - "{{ production_ports }}"
+  - "{{ internal_allowlist }}"
+  - "{{ internal_ports }}"
 
-- name: forward traffic on forwarded ports host from approved sources
+- name: forward traffic on internal ports host from approved sources
   iptables:
-    chain: DOCKER-USER
+    chain: FORWARD
     source: "{{ item[0] }}"
     destination_port: "{{ item[1] }}"
     protocol: tcp
     jump: ACCEPT
-    comment: allow traffic from approved sources
+    comment: allow internal traffic
   with_nested:
-  - "{{ firewall_allowlist }}"
-  - "{{ forwarded_ports }}"
+  - "{{ internal_allowlist }}"
+  - "{{ internal_ports }}"
 
 - name: accept traffic to docker-user chain from internal allowlist
   iptables:
@@ -112,7 +132,7 @@
     jump: ACCEPT
     comment: accept traffic to docker-user chain from internal allowlist
   with_items:
-  - "{{ internal_allowlist }}"
+  - "{{ local_allowlist }}"
   notify:
   - restart iptables
   - save iptables
