@@ -1,5 +1,9 @@
 --- # tasks/docker.yml
 
+- name: add service user to docker group
+  user: name={{ <%= projectName %>_user }} group=docker append=yes
+  become: true
+
 - name: install docker-compose config
   template: src=templates/docker-compose.yml.j2 dest={{ install_path }}/docker-compose.yml
   become: true
@@ -11,6 +15,10 @@
             dest=/etc/systemd/system/{{ service_name }}.service
             mode=0600 owner=root group=root
   become: true
+  notify:
+  - daemon reload
+  - restart docker daemon
+  - restart docker services
 
 - name: install pip
   yum: name=python-pip state=present
@@ -52,8 +60,6 @@
   become: true
   notify:
   - restart docker services
-  - migrate
-  - collectstatic
 
 - name: logout of registry
   docker_login: registry={{ docker_registry }} state=absent

@@ -5,7 +5,7 @@
   become: true
 
 - name: restart docker daemon
-  service: name=docker state=restarted
+  service: name=docker enabled=yes state=restarted 
   become: true
 
 - name: stop docker services

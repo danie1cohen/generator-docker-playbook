@@ -148,7 +148,7 @@
   - restart iptables
   - save iptables
 
-- name: re-add teh drop rule, so it's 2nd to last
+- name: re-add the drop rule, so it's 2nd to last
   iptables:
     chain: DOCKER-USER
     protocol: all
